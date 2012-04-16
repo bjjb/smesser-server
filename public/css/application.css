@@ -1,6 +1,12 @@
 body {
-  margin-top: 60px;
-}
-#message-form {
-  margin: auto;
-}
+  padding-top: 60px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+#contact-options {
+  text-align: center;
+  list-style: none; }
+  #contact-options li {
+    display: inline; }
+    #contact-options li a {
+      margin: 1em;
+      height: 48px; }

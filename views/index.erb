@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf8">
     <title>SMeSser</title>
-    <meta name="viewport" content="width:device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="description" content="Send SMSs from the web">
     <meta name="author" content="JJ Buckley">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/token-input.css">
     <link rel="stylesheet" href="/css/application.css">
     <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
     <!--[if lt IE 9]>
@@ -22,42 +23,62 @@
       <div class='navbar-inner'>
         <div class='container'>
           <a class='brand' href='#'>SMeSser</a>
+          <a class='btn btn-inverse pull-right' data-toggle="modal" href="#settings" id="settings-button"><i class='icon-cog icon-white'></i></a>
         </div>
       </div>
     </div>
-    <div class='container'>
-      <form id='message-form' method='post' action='/'>
-        <fieldset id='provider-fields'>
-          <p>
+    <div class="modal fade" id="settings">
+      <div class="modal-header">
+        <a class="close" data-dismiss="modal">×</a>
+        <h3>Settings</h3>
+      </div>
+      <div class="modal-body">
+        <form id="provider-settings" class="form form-stacked">
+          <fieldset id='provider-fields'>
+            <legend>Webtext provider</legend>
+            <label>Choose your webtext provider from the list</label>
             <select name='provider' id='provider' placeholder='Provider' required>
-            <% Smesser.providers.keys.each do |p| %>
-              <option value='<%= p %>'><%= p %></option>
-            <% end %>
+              <option>Choose your provider...</option>
+              <% Smesser.providers.keys.each do |p| %>
+                <option value='<%= p %>'><%= p %></option>
+              <% end %>
             </select>
-          </p>
-          <p>
+            <label>This is the username you use to log in to your webtext provider (usually your phone number).</label>
             <input type='text' name='username' id='username' placeholder='Username' required>
-          </p>
-          <p>
+            <label>Enter your <strong>provider's</strong> password.</label>
             <input type='password' name='password' id='password' placeholder='Password' required>
-          </p>
-        </fieldset>
-        <fieldset id='message-fields'>
-          <p>
-            <input type='text' name='recipients' id='recipients' placeholder='Recipients' required>
-          </p>
-          <p>
-            <textarea name='message' id='message' placeholder='Type your message here' required></textarea>
-          </p>
-          <p>
-            <input type="submit" value="Send">
-          </p>
-        </fieldset>
+          </fieldset>
+          <fieldset id='contact-fields'>
+            <legend>Contacts</legend>
+            <ul id='contact-options' class='unstyled'>
+              <li>
+                <a href='#' id='google-contacts-button'><img src='/img/google.png' alt='Google Contacts'></a>
+                <small class='hint-text'>Import contacts from Google (not implemented yet!)</small>
+              </li>
+            </ul>
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" class="btn btn-primary" disabled>Save</button>
+      </div>
+    </div>
+    <div class='container'>
+      <form id='message-form' class='form form-stacked' method='post' action='/message.json'>
+        <p>
+          <input type='text' name='recipients' id='recipients' placeholder='Recipients' required>
+        </p>
+        <p>
+          <textarea name='message' id='message' placeholder='Type your message here' required></textarea>
+        </p>
+        <p>
+          <input type="submit" value="Send SMS" class="btn btn-large btn-primary">
+        </p>
       </form>
     </div>
-
     <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.tokeninput.js"></script>
     <script src="/js/application.js"></script>
   </body>
 </html>
