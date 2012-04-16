@@ -1,0 +1,25 @@
+CACHE MANIFEST
+
+CACHE:
+index.html
+offline.html
+js/application.js
+js/bootstrap.min.js
+js/bootstrap-modal.js
+js/bootstrap-transition.js
+js/jquery.min.js
+css/bootstrap.min.css
+css/.application.css.swp
+css/bootstrap-responsive.min.css
+css/application.css
+images/glyphicons-halflings-white.png
+images/glyphicons-halflings.png
+
+FALLBACK:
+/ offline.html
+
+NETWORK:
+*
+
+# Last update
+# Mon Apr 16 18:03:04 IST 2012
