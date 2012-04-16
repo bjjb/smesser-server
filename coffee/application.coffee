@@ -1,5 +1,6 @@
 PROVIDER_FIELDS = ['provider', 'username', 'password']
 
+# Load the contacts from localStorage
 loadContacts = ->
   try
     JSON.parse(localStorage.contacts) if localStorage.contacts
@@ -7,6 +8,7 @@ loadContacts = ->
     console.error("Error reading contacts: #{e}")
     false
 
+# Ensure that the settings are sane
 checkSettings = ->
   if PROVIDER_FIELDS.every((x) -> (v = $("##{x}").val()) and v isnt "")
     $("#save-settings").attr("disabled", false)
@@ -17,10 +19,12 @@ checkSettings = ->
     $("#message-form").attr("disabled", true)
     false
 
+# Save whatever's in the settings, and hide the dialogue
 saveSettings = ->
   localStorage[x] = $("##{x}").val() for x in PROVIDER_FIELDS
   $("#provider-settings").modal("hide")
 
+# Send the message!
 sendMessage = (e) ->
   e.preventDefault()
   data =
@@ -31,6 +35,7 @@ sendMessage = (e) ->
     message: $("#message").val()
   $.post($(this).attr("action"), data)
 
+# Executed when the DOM loads
 jQuery ->
   $("##{x}").val(localStorage[x]) for x in PROVIDER_FIELDS
   $("#save-settings").on("click", saveSettings)
