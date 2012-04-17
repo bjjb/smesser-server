@@ -1,17 +1,17 @@
 (function() {
-  var PROVIDER_FIELDS, addContact, addGoogleContact, checkSettings, googleContacts, handleGoogleContactsError, handleGoogleContactsFeed, loadContacts, loadGoogleContacts, saveSettings, sendMessage;
+  var PROVIDER_FIELDS, addContact, checkSettings, googleContactsService, handleGoogleContactsError, handleGoogleContactsFeed, loadContacts, loadGoogleContacts, processGoogleContactsFeeds, saveSettings, sendMessage;
 
   PROVIDER_FIELDS = ['provider', 'username', 'password'];
-
-  this.__defineGetter__("googleContacts", function() {
-    return googleContacts;
-  });
 
   loadContacts = function() {
     var contacts;
     try {
       if (localStorage.contacts) {
         contacts = JSON.parse(localStorage.contacts);
+      }
+      if ($("#recipients").data("tokenInputObject")) {
+        $("#recipients").tokenInput("clear");
+        $("#recipients").siblings(".token-input-list").remove();
       }
       return $("#recipients").tokenInput(contacts, {
         hintText: 'Enter recipients'
@@ -22,72 +22,67 @@
     }
   };
 
-  addContact = function(name, id) {
+  addContact = function(name, number) {
     var contacts;
     contacts = JSON.parse(localStorage.contacts);
     contacts.push({
       name: name,
-      id: id
+      id: number
     });
-    console.debug("Added contact " + name + ": " + id + " (" + contacts.size + " total)");
     return localStorage.contacts = JSON.stringify(contacts);
   };
 
-  googleContacts = null;
+  googleContactsService = null;
 
   loadGoogleContacts = function() {
-    var feed, query, scope, service;
+    var feedURL, scope;
     scope = 'https://www.google.com/m8/feeds';
     if (google.accounts.user.checkLogin(scope) === "") {
       google.accounts.user.login(scope);
     }
-    service = new google.gdata.contacts.ContactsService("smesser-0.0.2");
-    feed = 'https://www.google.com/m8/feeds/contacts/default/full';
-    query = new google.gdata.contacts.ContactQuery(feed);
+    if (googleContactsService == null) {
+      googleContactsService = new google.gdata.contacts.ContactsService("smesser-0.0.2");
+    }
+    console.debug("Getting the full feed...");
+    feedURL = 'https://www.google.com/m8/feeds/contacts/default/full';
     localStorage.contacts = JSON.stringify([]);
-    return service.getContactFeed(query, handleGoogleContactsFeed, handleGoogleContactsError);
+    return processGoogleContactsFeeds(feedURL);
+  };
+
+  processGoogleContactsFeeds = function(feedURL) {
+    var query;
+    query = new google.gdata.contacts.ContactQuery(feedURL);
+    return googleContactsService.getContactFeed(query, handleGoogleContactsFeed, handleGoogleContactsError);
   };
 
   handleGoogleContactsFeed = function(result) {
-    var entry, id, name, number, phoneNumber, title, _i, _len, _ref, _results;
+    var entry, feedURL, name, number, phoneNumber, title, _i, _j, _len, _len1, _ref, _ref1;
     _ref = result.feed.entry;
-    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       entry = _ref[_i];
       title = entry.getTitle().getText();
-      _results.push((function() {
-        var _j, _len1, _ref1, _results1;
-        _ref1 = entry.getPhoneNumbers();
-        _results1 = [];
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          phoneNumber = _ref1[_j];
-          number = phoneNumber.getValue();
-          name = "" + title + " (" + number + ")";
-          id = number;
-          _results1.push(addContact(name, number));
-        }
-        return _results1;
-      })());
+      _ref1 = entry.getPhoneNumbers();
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        phoneNumber = _ref1[_j];
+        number = phoneNumber.getValue();
+        name = "" + title + " (" + number + ")";
+        console.debug(" + " + name);
+        addContact(name, number);
+      }
     }
-    return _results;
+    feedURL = result.feed.getNextLink();
+    console.debug("Next link: %o", feedURL);
+    if (feedURL != null) {
+      return processGoogleContactsFeeds(feedURL.href);
+    } else {
+      return loadContacts();
+    }
   };
 
   handleGoogleContactsError = function(error) {
     console.debug("handleGoogleContactsError...");
     alert("There was an error getting the Google contacts!");
     return console.error(error);
-  };
-
-  addGoogleContact = function(entry) {
-    var n, _i, _len, _ref, _results;
-    console.log(entry.getTitle().getText());
-    _ref = entry.getPhoneNumbers();
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      n = _ref[_i];
-      _results.push(console.log(n.getValue()));
-    }
-    return _results;
   };
 
   checkSettings = function() {
@@ -111,7 +106,8 @@
       x = PROVIDER_FIELDS[_i];
       localStorage[x] = $("#" + x).val();
     }
-    return $("#provider-settings").modal("hide");
+    $("#provider-settings").modal("hide");
+    return loadContacts();
   };
 
   sendMessage = function(e) {
@@ -146,11 +142,8 @@
     }
     $("#save-settings").on("click", saveSettings);
     $("#provider-settings").on("change", checkSettings);
-    if (!checkSettings()) {
-      $("#provider-settings").modal("show");
-    }
-    loadContacts();
-    return $("#message-form").on("submit", sendMessage);
+    $("#message-form").on("submit", sendMessage);
+    return loadContacts();
   });
 
   google.load("gdata", "1.x");
